@@ -1,13 +1,18 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.3",
   "info": {
-    "title": "",
-    "description": "## Webhooks\n\nMyDeal provides webhooks to notify real-time subscribed clients whenever an event of interest occurs in our system.\n## Event Types\n### Order Created\nThis event is triggered when a new order is created.\n#### Payload\n ```\n{\n  \"event\": \"user_created\",\n  \"user_id\": 123,\n  \"name\": \"John Doe\",\n  \"email\": \"johndoe@example.com\",\n  \"created_at\": \"2023-04-20T12:34:56Z\"\n}\n```\n [link](#/components/examples/todo)",
+    "x-logo": {
+      "url": "https://placehold.co/170x38/000000/FFFFFF/png"
+    },
+    "title": "Middleware API",
+    "description": "## 🧰 Introduction \n Welcome to the API documentation for Middleware! This API is designed to help sellers integrate with our marketplace platform, making it easy to list and manage products, track order, and more.\r\nThis documentation will provide you with everything you need to know to start using our middleware project. You'll find detailed API reference documentation, as well as examples to help you get up to speed quickly.\n\n## ↩️ Webhooks\nBubletea provides Webhooks to notify real-time subscribed clients.\nBelow is the list of **events** that MyDeal Middleware API will trigger; the details will find below ahead:\n  - `order/created`: Occurs when a order is created. [more details](#tag/Events/paths/order~1created/post)\n  - `order/creation-failed`: Occurs when a order creation fails. [more details](#tag/Events/paths/order~1creation-failed/post)\n  - `order-line/cancelled`: Occurs when a order line is cancelled. [more details](#tag/Events/paths/order-line~1cancelled/post)\n  - `order-line/refunded`: Occurs when a order line is refunded. [more details](#tag/Events/paths/order-line~1refunded/post)\n  - `order-line/shipped`: Occurs when a order line is shipped. [more details](#tag/Events/paths/order-line~1shipped/post)",
+    "termsOfService": "",
     "contact": {
-      "name": "MyDeal Support",
-      "url": "https://help.mydeal.com.au",
-      "email": "support@mydeal.com.au"
-    }
+      "name": "Support",
+      "url": "https://help.bubbletea.com.au",
+      "email": "support@bubbletea.com.au"
+    },
+    "version": "1.0.0"
   },
   "paths": {
     "/api/order": {
@@ -34,62 +39,6 @@
           "409": {
             "description": "Conflict"
           }
-        },
-        "callbacks": {
-          "Event triggered when the order is created": {
-            "http://<registered webhook url>/": {
-              "post": {
-                "summary": "OrderCreated: This is a webhook that occurs when the order is created",
-                "requestBody": {
-                  "content": {
-                    "application/json": {
-                      "schema": {
-                        "$ref": "#/components/schemas/OrderCreated"
-                      }
-                    }
-                  }
-                },
-                "responses": {
-                  "200": {
-                    "description": "Your server implementation should return this HTTP status code if the data was received successfully"
-                  },
-                  "4xx": {
-                    "description": "If your server returns an HTTP status code indicating it does not understand the format of the payload the delivery will be treated as a failure. No retries are attempted."
-                  },
-                  "5xx": {
-                    "description": "If your server returns an HTTP status code indicating a server-side error the delivery will be treated as a failure. No retries are attempted."
-                  }
-                }
-              }
-            }
-          },
-          "Event triggered when a order line is cancelled": {
-            "http://<registered webhook url>/": {
-              "post": {
-                "summary": "OrderLineCancelled: This is a webhook that occurs when a order line is cancelled",
-                "requestBody": {
-                  "content": {
-                    "application/json": {
-                      "schema": {
-                        "$ref": "#/components/schemas/OrderLineCancelled"
-                      }
-                    }
-                  }
-                },
-                "responses": {
-                  "200": {
-                    "description": "Your server implementation should return this HTTP status code if the data was received successfully"
-                  },
-                  "4xx": {
-                    "description": "If your server returns an HTTP status code indicating it does not understand the format of the payload the delivery will be treated as a failure. No retries are attempted."
-                  },
-                  "5xx": {
-                    "description": "If your server returns an HTTP status code indicating a server-side error the delivery will be treated as a failure. No retries are attempted."
-                  }
-                }
-              }
-            }
-          }
         }
       }
     },
@@ -103,6 +52,7 @@
             "name": "externalOrderId",
             "in": "path",
             "required": true,
+            "style": "simple",
             "schema": {
               "type": "string"
             }
@@ -139,10 +89,8 @@
         ],
         "type": "object",
         "properties": {
-          "webhooks": {
-            "$ref": "#/components/schemas/OrderCreationWebhooks"
-          },
           "externalOrderId": {
+            "maxLength": 100,
             "minLength": 1,
             "type": "string",
             "description": "External Payment Receipt Id. This groups all orders made by a customer in a single purchase. This should be unique per marketplace"
@@ -177,13 +125,6 @@
         },
         "additionalProperties": false
       },
-      "CustomerMarketplace": {
-        "enum": [
-          "MyDeal",
-          "BigW"
-        ],
-        "type": "string"
-      },
       "Error": {
         "type": "object",
         "properties": {
@@ -197,18 +138,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "EventType": {
-        "enum": [
-          "Unknown",
-          "OrderReceived",
-          "OrderCreationFailed",
-          "OrderCreated",
-          "OrderLineShipped",
-          "OrderLineRefunded",
-          "OrderLineCancelled"
-        ],
-        "type": "string"
       },
       "GetOrderResponse": {
         "type": "object",
@@ -233,37 +162,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "OrderCreated": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "$ref": "#/components/schemas/EventType"
-          },
-          "customerMarketplace": {
-            "$ref": "#/components/schemas/CustomerMarketplace"
-          },
-          "timestamp": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "externalOrderId": {
-            "type": "string",
-            "nullable": true,
-            "readOnly": true
-          },
-          "paymentReceipt": {
-            "$ref": "#/components/schemas/PaymentReceiptCreated"
-          }
-        },
-        "additionalProperties": false
-      },
-      "OrderCreationWebhooks": {
-        "enum": [
-          "OrderCreated",
-          "OrderLineCancelled"
-        ],
-        "type": "string"
       },
       "OrderDetails": {
         "type": "object",
@@ -290,6 +188,7 @@
         "type": "object",
         "properties": {
           "externalOrderGroupId": {
+            "maxLength": 100,
             "minLength": 1,
             "type": "string",
             "description": "External order group id. This groups all orders for a seller that share a shipping cost strategy. This should be unique per ExternalOrderId"
@@ -300,31 +199,6 @@
             "items": {
               "$ref": "#/components/schemas/OrderLine"
             }
-          },
-          "myProperty": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "OrderGroupCreated": {
-        "type": "object",
-        "properties": {
-          "externalOrderGroupId": {
-            "type": "string",
-            "nullable": true
-          },
-          "bidDealGroupId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "orderLines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderLineCreated"
-            },
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -353,13 +227,12 @@
           "orderedQuantity",
           "productTitle",
           "totalShippingPrice",
-          "totalShippingPriceExcCommission",
-          "unitPrice",
-          "unitPriceExcCommission"
+          "unitPrice"
         ],
         "type": "object",
         "properties": {
           "externalOrderLineId": {
+            "maxLength": 100,
             "minLength": 1,
             "type": "string",
             "description": "External order item id. This is similar to a line item. This should be unique per ExternalOrderGroupId"
@@ -392,6 +265,7 @@
             "type": "number",
             "description": "The price per unit charged to the customer minus marketplace commission",
             "format": "double",
+            "nullable": true,
             "minimum": 0.01
           },
           "totalShippingPrice": {
@@ -404,56 +278,8 @@
             "type": "number",
             "description": "The cost of shipping for all items charged to the customer minus marketplace commission",
             "format": "double",
+            "nullable": true,
             "minimum": 0
-          }
-        },
-        "additionalProperties": false
-      },
-      "OrderLineCancelled": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "$ref": "#/components/schemas/EventType"
-          },
-          "customerMarketplace": {
-            "$ref": "#/components/schemas/CustomerMarketplace"
-          },
-          "timestamp": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "externalOrderId": {
-            "type": "string",
-            "nullable": true
-          },
-          "externalOrderGroupId": {
-            "type": "string",
-            "nullable": true
-          },
-          "externalOrderLineId": {
-            "type": "string",
-            "nullable": true
-          },
-          "note": {
-            "type": "string",
-            "nullable": true
-          },
-          "refundReason": {
-            "$ref": "#/components/schemas/RefundReason"
-          }
-        },
-        "additionalProperties": false
-      },
-      "OrderLineCreated": {
-        "type": "object",
-        "properties": {
-          "externalOrderLineId": {
-            "type": "string",
-            "nullable": true
-          },
-          "bidDealId": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -528,27 +354,6 @@
           "CreationFailed"
         ],
         "type": "string"
-      },
-      "PaymentReceiptCreated": {
-        "type": "object",
-        "properties": {
-          "externalOrderId": {
-            "type": "string",
-            "nullable": true
-          },
-          "paymentReceiptId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "orderGroups": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderGroupCreated"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
       },
       "RefundReason": {
         "enum": [
@@ -656,6 +461,305 @@
           }
         },
         "additionalProperties": false
+      },
+      "Cancelled": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "externalOrderId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalOrderGroupId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalOrderLineId": {
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "refundReason": {
+            "$ref": "#/components/schemas/RefundReason1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Created": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "integer",
+            "description": "Timestamp when the event happened",
+            "format": "int64"
+          },
+          "externalOrderId": {
+            "type": "string",
+            "description": "The external Order Id",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the Order/Creates event"
+      },
+      "CreationFailed": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "externalOrderId": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RefundReason1": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "Refunded": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "externalOrderId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalOrderGroupId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalOrderLineId": {
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "refundReason": {
+            "$ref": "#/components/schemas/RefundReason1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Shipped": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "externalOrderId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalOrderGroupId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalOrderLineId": {
+            "type": "string",
+            "nullable": true
+          },
+          "shippedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "shippedQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "trackingNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "carrier": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "x-webhooks": {
+    "order/created": {
+      "description": "Occurs when a order is created.",
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "description": "Occurs when a order is created.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Created"
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    },
+    "order/creation-failed": {
+      "description": "Occurs when a order creation fails.",
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "description": "Occurs when a order creation fails.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreationFailed"
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    },
+    "order-line/cancelled": {
+      "description": "Occurs when a order line is cancelled.",
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "description": "Occurs when a order line is cancelled.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cancelled"
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    },
+    "order-line/refunded": {
+      "description": "Occurs when a order line is refunded.",
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "description": "Occurs when a order line is refunded.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Refunded"
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    },
+    "order-line/shipped": {
+      "description": "Occurs when a order line is shipped.",
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "description": "Occurs when a order line is shipped.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Shipped"
+              }
+            }
+          }
+        },
+        "responses": {}
       }
     }
   }
